@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>MindAR Практическая работа №1</title>
+
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+</head>
+
+<body>
+
+<a-scene
+    mindar-image="imageTargetSrc: targets.mind;">
+
+    <a-assets>
+        <a-asset-item
+            id="chickenModel"
+            src="models/chicken.glb">
+        </a-asset-item>
+    </a-assets>
+
+    <a-light
+        type="ambient"
+        intensity="1">
+    </a-light>
+
+    <a-camera
+        position="0 0 0">
+    </a-camera>
+
+    <a-entity mindar-image-target="targetIndex: 0">
+
+        <a-gltf-model
+            src="#chickenModel"
+            position="0 0 0"
+            scale="0.1 0.1 0.1">
+        </a-gltf-model>
+
+    </a-entity>
+
+</a-scene>
+
+</body>
+</html>
