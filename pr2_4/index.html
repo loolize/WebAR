@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>WebAR Практическая работа №2. Часть 2</title>
+
+    <style>
+
+        body
+
+        /* кнопка запуска ar */
+        #arButton{
+
+            /* кнопка поверх Three */
+            position: absolute;
+
+
+            /* внутренние отступы */
+            padding: 12px 20px;
+
+            /* выше */
+            z-index: 10;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+.
+    <!-- без действия  браузер не разрешит запустить ar -->
+    <button id="arButton">
+        Запустить
+    </button>
+
+
+    <!-- импорт для подключения Three -->
+    <script type="module">
+
+
+    //    библиотека
+        import * as THREE from
+        "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+
+
+        // СЦЕНА для куба точки и контроллера
+        const scene = new THREE.Scene();
+
+        // виртуальная камера. положение камеры=пол телефона
+        const camera = new THREE.PerspectiveCamera();
+
+
+        // отрисовкуа сцены
+        const renderer = new THREE.WebGLRenderer({
+            // прозрачный фон  иначе не видно изобр с камеры
+            alpha: true
+        });
+
+        // webxr в three renderer
+        renderer.xr.enabled = true;
+
+
+        // тип системы координат local-floor.
+        // относительно пола, а не камеры
+        renderer.xr.setReferenceSpaceType(
+            "local-floor"
+        );
+
+        // чтобы three мог отображать
+        document.body.appendChild(
+            renderer.domElement
+        );
+
+
+
+        // МАРКЕР ТОЧКА
+        const reticle = new THREE.Mesh(
+            new THREE.SphereGeometry(0.02, 10, 10),
+            new THREE.MeshBasicMaterial()
+        );
+
+        // положение точки не автоматически
+        reticle.matrixAutoUpdate = false;
+        // пока поверхности нет нет точки
+        reticle.visible = false;
+
+
+        
+        scene.add(reticle); // точку в Three
+
+
+
+        // КУБ
+        const cubeGeometry =
+            new THREE.BoxGeometry(0.1, 0.1, 0.1);
+
+        const cubeMaterial =
+            new THREE.MeshNormalMaterial();
+
+        const cube =
+            new THREE.Mesh(
+                cubeGeometry,
+                cubeMaterial
+            );
+
+
+        // куб скрыт, тк пользователь еще не выбрал место.
+        cube.visible = false;
+
+        cube.matrixAutoUpdate = false;
+        scene.add(cube);
+
+        // контроллер для тапа
+
+        const controller =
+            renderer.xr.getController(0);
+
+
+        controller.addEventListener(
+            "select",
+            placeCube
+        );
+
+        scene.add(controller);
+
+
+
+        // hit test
+        // для XRHitTestSource
+        let hitTestSource = null;
+
+
+        // пр-во координат относительно камеры
+        let viewerSpace = null;
+
+
+        // стабильная система координат сцены
+        let referenceSpace = null;
+
+
+
+        // запуск ar функция
+        async function startAR(){
+            const session =
+                await navigator.xr.requestSession(
+
+                    "immersive-ar", //используется камера устройства и вирт объекты накладываются на реальный мир
+
+                    {
+                           requiredFeatures: [ //функции без кот сессия не раь
+                            "hit-test", //для поиска поверхностей
+                            "local-floor" // сист координат с уровнем пола
+                        ]
+                    }
+                );
+
+            await renderer.xr.setSession(
+                session
+            );
+
+            //пространство с тек положением камеры
+            viewerSpace =
+                await session.requestReferenceSpace(
+                    "viewer"
+                );
+
+            // коорд найденных поверхностей отн переменной
+            referenceSpace =
+                await session.requestReferenceSpace(
+                    "local-floor"
+                );
+
+
+            //поиск поверхн
+            hitTestSource =
+                await session.requestHitTestSource({
+                    space: viewerSpace
+                });
+
+            document.getElementById(
+                "arButton"
+            ).style.display = "none";
+
+            // рендеринг кадлыц кадр
+            renderer.setAnimationLoop(
+                render
+            );
+        }
+
+
+
+        // кнопка запуска
+        document.getElementById(
+            "arButton"
+        )
+
+        .addEventListener(
+            "click",
+            startAR
+        );
+
+
+
+        // =========================================================
+        // 8. HIT-TEST В КАЖДОМ КАДРЕ
+        // =========================================================
+
+
+        /*
+            Эта функция выполняется каждый кадр
+            во время AR-сессии.
+
+            time — время кадра.
+            frame — текущий XRFrame.
+        */
+        function render(time, frame) {
+            
+
+            /*
+                Проверяем, что:
+
+                - существует XRFrame;
+                - создан hitTestSource;
+                - получен referenceSpace.
+            */
+            if (
+                frame &&
+                hitTestSource &&
+                referenceSpace
+            ) {
+
+
+                /*
+                    Получаем результаты hit-test
+                    для текущего кадра.
+                */
+                const hitTestResults =
+                    frame.getHitTestResults(
+                        hitTestSource
+                    );
+
+
+                /*
+                    Если была найдена хотя бы
+                    одна поверхность...
+                */
+                if (
+                    hitTestResults.length > 0
+                ) {
+
+
+                    /*
+                        Берем первый найденный результат.
+                    */
+                    const hit =
+                        hitTestResults[0];
+
+
+                    /*
+                        Получаем положение найденной точки
+                        относительно referenceSpace.
+                    */
+                    const pose =
+                        hit.getPose(
+                            referenceSpace
+                        );
+
+
+                    /*
+                        Если pose действительно получен...
+                    */
+                    if (pose) {
+
+
+                        /*
+                            Показываем точку.
+                        */
+                        reticle.visible = true;
+
+
+                        /*
+                            WebXR возвращает готовую
+                            4×4 transform matrix.
+
+                            Копируем ее в матрицу
+                            нашей точки.
+
+                            Благодаря этому точка занимает
+                            положение и ориентацию
+                            найденной поверхности.
+                        */
+                        reticle.matrix.fromArray(
+                            pose.transform.matrix
+                        );
+
+                    }
+
+                }
+
+                else {
+
+
+                    /*
+                        Если поверхность в этом кадре
+                        не найдена — скрываем точку.
+                    */
+                    reticle.visible = false;
+
+                }
+
+            }
+
+
+            // отрисовка сцкеы
+            renderer.render(
+                scene,
+                camera
+            );
+        }
+
+
+
+        // РАЗМЕЩЕНИЕ КУБА
+        function placeCube() {
+        //если hittest нашел поверхность и точка видима и куб еще не было
+            if (
+                reticle.visible &&
+                !cube.visible
+            ) {
+                // матрицу точки в куб
+                cube.matrix.copy(
+                    reticle.matrix
+                );
+
+                cube.visible = true;
+            }
+
+        }
+
+
+    </script>
+
+
+</body>
+
+</html>
