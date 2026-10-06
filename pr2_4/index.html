@@ -200,59 +200,24 @@
             startAR
         );
 
-
-
-        // =========================================================
-        // 8. HIT-TEST В КАЖДОМ КАДРЕ
-        // =========================================================
-
-
-        /*
-            Эта функция выполняется каждый кадр
-            во время AR-сессии.
-
-            time — время кадра.
-            frame — текущий XRFrame.
-        */
+        // hittest
         function render(time, frame) {
             
 
-            /*
-                Проверяем, что:
-
-                - существует XRFrame;
-                - создан hitTestSource;
-                - получен referenceSpace.
-            */
             if (
                 frame &&
                 hitTestSource &&
                 referenceSpace
             ) {
-
-
-                /*
-                    Получаем результаты hit-test
-                    для текущего кадра.
-                */
                 const hitTestResults =
                     frame.getHitTestResults(
                         hitTestSource
                     );
 
-
-                /*
-                    Если была найдена хотя бы
-                    одна поверхность...
-                */
                 if (
                     hitTestResults.length > 0
                 ) {
 
-
-                    /*
-                        Берем первый найденный результат.
-                    */
                     const hit =
                         hitTestResults[0];
 
@@ -267,29 +232,12 @@
                         );
 
 
-                    /*
-                        Если pose действительно получен...
-                    */
                     if (pose) {
 
-
-                        /*
-                            Показываем точку.
-                        */
                         reticle.visible = true;
 
 
-                        /*
-                            WebXR возвращает готовую
-                            4×4 transform matrix.
-
-                            Копируем ее в матрицу
-                            нашей точки.
-
-                            Благодаря этому точка занимает
-                            положение и ориентацию
-                            найденной поверхности.
-                        */
+                
                         reticle.matrix.fromArray(
                             pose.transform.matrix
                         );
@@ -298,16 +246,7 @@
 
                 }
 
-                else {
-
-
-                    /*
-                        Если поверхность в этом кадре
-                        не найдена — скрываем точку.
-                    */
-                    reticle.visible = false;
-
-                }
+                else { reticle.visible = false; }
 
             }
 

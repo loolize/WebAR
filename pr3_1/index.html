@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Практическая работа №3</title>
+
+    <style>
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        /* запуск кнопка  */
+        #arButton {
+            position: absolute;
+            bottom: 25px;
+
+            /* по центру экрана */
+            left: 50%;
+            transform: translateX(-50%);
+
+            padding: 12px 24px;
+
+            font-size: 16px;
+
+            border: none;
+            border-radius: 12px;
+
+            z-index: 10;
+        }
+
+        /* панель управвления */
+        #controls {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);        
+
+            z-index: 10;
+
+            background: rgba(44, 26, 26, 0.192);
+
+            padding: 12px;
+
+            border-radius: 12px;
+        }
+
+        #controls button,
+        #controls select,
+        #controls input {
+            margin: 5px;
+        }
+
+    </style>
+
+
+<!--подключение three.js -->
+     <script type="importmap"> 
+    {
+        "imports": {
+            "three":
+            "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+
+            "three/addons/":
+            "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+        }
+    }
+    </script>
+
+</head>
+
+
+<body>
+
+    <div id="controls">
+
+        <label>
+            цвет:
+            <input
+                type="color"
+                id="colorPicker"
+                value="#8b5cf6"
+            >
+        </label>
+
+        <label>
+            модель:
+            <select id="objectSelect">
+
+                <option value="cube">
+                    куб
+                </option>
+
+                <option value="model">
+                    лягушка
+                </option>
+
+            </select>
+        </label>
+
+        <button id="rotateLeft">
+            повернуть влево
+        </button>
+
+        <button id="rotateRight">
+            повернуть вправо
+        </button>
+
+    </div>
+
+    <button id="arButton">
+        запустить ar
+    </button>
+
+    <script
+        type="module"
+        src="./js/scene.js">
+    </script>
+
+</body>
+
+</html>
